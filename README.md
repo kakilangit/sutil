@@ -1,2 +1,3 @@
-# slice
+# Sutil
 Go slice util 
+
