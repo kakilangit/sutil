@@ -92,8 +92,116 @@ func TestStringsSplit(t *testing.T) {
 	}
 }
 
+func TestIndex(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name                       string
+		page, limit, total         int
+		expectedStart, expectedEnd int
+	}{
+		{
+			name:          "ok_1",
+			page:          0,
+			limit:         1,
+			total:         2,
+			expectedStart: 0,
+			expectedEnd:   1,
+		},
+		{
+			name:          "ok_2",
+			page:          0,
+			limit:         10,
+			total:         8,
+			expectedStart: 0,
+			expectedEnd:   8,
+		},
+		{
+			name:          "ok_3",
+			page:          1,
+			limit:         3,
+			total:         8,
+			expectedStart: 3,
+			expectedEnd:   6,
+		},
+		{
+			name:          "ok_4",
+			page:          10,
+			limit:         1,
+			total:         8,
+			expectedStart: 8,
+			expectedEnd:   8,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			start, end := sutil.Index(test.page, test.limit, test.total)
+			if test.expectedStart != start || test.expectedEnd != end {
+				t.Error("start & end index must be equal with the expected values")
+			}
+		})
+	}
+}
+
+func TestTotalPage(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		limit, total  int
+		expectedTotal int
+	}{
+		{
+			name:          "ok_1",
+			limit:         1,
+			total:         2,
+			expectedTotal: 2,
+		},
+		{
+			name:          "ok_2",
+			limit:         10,
+			total:         8,
+			expectedTotal: 1,
+		},
+		{
+			name:          "ok_3",
+			limit:         3,
+			total:         8,
+			expectedTotal: 3,
+		},
+		{
+			name:          "ok_4",
+			limit:         1,
+			total:         8,
+			expectedTotal: 8,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			total := sutil.TotalPage(test.limit, test.total)
+			if test.expectedTotal != total {
+				t.Error("total must be equal with the expected values")
+			}
+		})
+	}
+}
+
 func BenchmarkStringsSplit(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		_, _ = sutil.StringsSplit([]string{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"}, 3)
+	}
+}
+
+func BenchmarkIndex(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		_, _ = sutil.Index(1, 2, 3)
+	}
+}
+
+func BenchmarkTotalPage(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		_ = sutil.TotalPage(2, 3)
 	}
 }
