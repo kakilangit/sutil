@@ -4,47 +4,66 @@ import (
 	"math"
 )
 
-// StringsSplit splits slice of string into slice of string slice with maximum member of string slice is limit
-// Can be used for pagination or break the parameters used in SQL IN statements
-// Manipulating slice is faster than append via iteration
+// StringsSplit splits slice of string into slice of string slice with maximum member of string slice is limit.
+// Can be used for pagination or break the parameters used in SQL IN statements.
+// Manipulating slice is faster than append via iteration.
+//
+// Example:
+//	input := []string{"7892141641500", "7892141600279", "7892141600422", "7892141640145", "7892141650236", "7892141650274", "7892141650311"}
+//	limit := 2
+//
+//	pages, err := sutil.StringsSplit(input, limit)
+//	if err != nil {
+//		fmt.Println(err)
+//	}
+//	fmt.Println(pages)
+//
+// Will return:
+//
+// 	[[7892141641500 7892141600279] [7892141600422 7892141640145] [7892141650236 7892141650274] [7892141650311]]
+//
 func StringsSplit(s []string, limit int) ([][]string, error) {
 	if limit < 1 || limit > math.MaxInt32 {
 		return nil, ErrInvalidLimit
 	}
 
-	total := len(s)
-	if s == nil && total == 0 {
+	length := len(s)
+	if s == nil && length == 0 {
 		return nil, ErrInvalidStringSlice
 	}
 
-	max := totalPage(total, limit)
-	slices := make([][]string, max)
-	for page := 0; page < max; page++ {
-		start, end := index(page, limit, total)
+	total := TotalPage(limit, length)
+	slices := make([][]string, total)
+	for page := 0; page < total; page++ {
+		start, end := Index(page, limit, length)
 		slices[page] = s[start:end]
 	}
 
 	return slices, nil
 }
 
-func index(page, limit, total int) (int, int) {
+// Index is taking page, limit, and slice length and return the correct start and end index of slice
+func Index(page, limit, length int) (int, int) {
 	start := page * limit
-	if start > total {
-		start = total
+	if start > length {
+		start = length
 	}
 
 	end := start + limit
-	if end > total {
-		end = total
+	if end > length {
+		end = length
 	}
 
 	return start, end
 }
 
-func totalPage(total, limit int) int {
+// TotalPage is taking limit and slice length and return the total page for any given slice,
+// instead of count the slice it required calculated length, making it more reusable for any type of slices,
+// waiting Go 2 generic to change the signature
+func TotalPage(limit, length int) int {
 	var (
-		page   = total / limit
-		remain = total % limit
+		page   = length / limit
+		remain = length % limit
 	)
 
 	if remain > 0 {

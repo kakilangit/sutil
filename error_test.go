@@ -10,10 +10,7 @@ func TestError_Error(t *testing.T) {
 	t.Parallel()
 
 	const expectedError = "error"
-	var err error
-
-	err = sutil.Error(expectedError)
-
+	var err error = sutil.Error(expectedError)
 	if err == nil {
 		t.Error("error must not be nil")
 	}
