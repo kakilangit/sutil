@@ -4,15 +4,17 @@ import (
 	"math"
 )
 
-// StringsSplit splits slice of string into slice of string slice with maximum member of string slice is limit.
+// SplitStrings splits slice of string into slice of string slice with maximum member of string slice is limit.
 // Can be used for pagination or break the parameters used in SQL IN statements.
 // Manipulating slice is faster than append via iteration.
+//
+// Waiting for Go 2 generic and all Split{Type}s will be renamed to Split that accept []T
 //
 // Example:
 //	input := []string{"7892141641500", "7892141600279", "7892141600422", "7892141640145", "7892141650236", "7892141650274", "7892141650311"}
 //	limit := 2
 //
-//	pages, err := sutil.StringsSplit(input, limit)
+//	pages, err := sutil.SplitStrings(input, limit)
 //	if err != nil {
 //		fmt.Println(err)
 //	}
@@ -22,7 +24,7 @@ import (
 //
 // 	[[7892141641500 7892141600279] [7892141600422 7892141640145] [7892141650236 7892141650274] [7892141650311]]
 //
-func StringsSplit(s []string, limit int) ([][]string, error) {
+func SplitStrings(s []string, limit int) ([][]string, error) {
 	if limit < 1 || limit > math.MaxInt32 {
 		return nil, ErrInvalidLimit
 	}
@@ -59,7 +61,7 @@ func Index(page, limit, length int) (int, int) {
 
 // TotalPage is taking limit and slice length and return the total page for any given slice,
 // instead of count the slice it required calculated length, making it more reusable for any type of slices,
-// waiting Go 2 generic to change the signature
+// waiting Go 2 generic to change the signature to accept []T and perform length calculation
 func TotalPage(limit, length int) int {
 	var (
 		page   = length / limit

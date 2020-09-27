@@ -72,7 +72,7 @@ func TestStringsSplit(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			output, err := sutil.StringsSplit(test.input, test.limit)
+			output, err := sutil.SplitStrings(test.input, test.limit)
 			if test.err != err {
 				t.Error("error must be equal")
 			}
@@ -190,7 +190,7 @@ func TestTotalPage(t *testing.T) {
 
 func BenchmarkStringsSplit(b *testing.B) {
 	for n := 0; n < b.N; n++ {
-		_, _ = sutil.StringsSplit([]string{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"}, 3)
+		_, _ = sutil.SplitStrings([]string{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"}, 3)
 	}
 }
 
