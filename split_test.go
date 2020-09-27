@@ -5,18 +5,17 @@ import (
 	"testing"
 
 	"github.com/kakilangit/sutil"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestStringsSplit(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name          string
-		input         []string
-		limit         int
-		expectLength  int
-		expectedTotal int
-		err           error
+		name           string
+		input          []string
+		limit          int
+		expectedLength int
+		expectedTotal  int
+		err            error
 	}{
 		{
 			name:  "zero_limit",
@@ -42,47 +41,53 @@ func TestStringsSplit(t *testing.T) {
 			err:   sutil.ErrInvalidStringSlice,
 		},
 		{
-			name:          "ok_1",
-			input:         []string{"A", "B", "C"},
-			limit:         1,
-			expectLength:  3,
-			expectedTotal: 3,
+			name:           "ok_1",
+			input:          []string{"A", "B", "C"},
+			limit:          1,
+			expectedLength: 3,
+			expectedTotal:  3,
 		},
 		{
-			name:          "ok_2",
-			input:         []string{"A", "B", "C"},
-			limit:         2,
-			expectLength:  2,
-			expectedTotal: 3,
+			name:           "ok_2",
+			input:          []string{"A", "B", "C"},
+			limit:          2,
+			expectedLength: 2,
+			expectedTotal:  3,
 		},
 		{
-			name:          "ok_3",
-			input:         []string{"A", "B", "C", "D", "E", "F", "G", "H", "I"},
-			limit:         5,
-			expectLength:  2,
-			expectedTotal: 9,
+			name:           "ok_3",
+			input:          []string{"A", "B", "C", "D", "E", "F", "G", "H", "I"},
+			limit:          5,
+			expectedLength: 2,
+			expectedTotal:  9,
 		},
 		{
-			name:          "ok_4",
-			input:         []string{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"},
-			limit:         3,
-			expectLength:  4,
-			expectedTotal: 10,
+			name:           "ok_4",
+			input:          []string{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"},
+			limit:          3,
+			expectedLength: 4,
+			expectedTotal:  10,
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			output, err := sutil.StringsSplit(test.input, test.limit)
-			assert.Equal(t, test.err, err)
-			assert.Len(t, output, test.expectLength)
+			if test.err != err {
+				t.Error("error must be equal")
+			}
+			if test.expectedLength != len(output) {
+				t.Error("slice length must be equal")
+			}
 
 			total := 0
 			for i := range output {
 				total += len(output[i])
 			}
 
-			assert.Equal(t, test.expectedTotal, total)
+			if test.expectedTotal != total {
+				t.Error("total member of the slice must be equal")
+			}
 		})
 	}
 }

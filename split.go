@@ -17,17 +17,18 @@ func StringsSplit(s []string, limit int) ([][]string, error) {
 		return nil, ErrInvalidStringSlice
 	}
 
-	slices := make([][]string, 0)
-	for page := 1; page <= totalPage(total, limit); page++ {
+	max := totalPage(total, limit)
+	slices := make([][]string, max)
+	for page := 0; page < max; page++ {
 		start, end := index(page, limit, total)
-		slices = append(slices, s[start:end])
+		slices[page] = s[start:end]
 	}
 
 	return slices, nil
 }
 
 func index(page, limit, total int) (int, int) {
-	start := (page - 1) * limit
+	start := page * limit
 	if start > total {
 		start = total
 	}
