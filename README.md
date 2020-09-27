@@ -1,6 +1,8 @@
 # Sutil
 
-<a href="https://pkg.go.dev/github.com/kakilangit/sutil" rel="nofollow"><img src="https://camo.githubusercontent.com/f09453cd599cb9c570cdef35d8bc0780a8e99d1b/68747470733a2f2f676f646f632e6f72672f6769746875622e636f6d2f73747265746368722f746573746966793f7374617475732e737667" alt="GoDoc" data-canonical-src="https://godoc.org/github.com/kakilangit/sutil?status.svg" style="max-width:100%;"></a>
+[![PkgGoDev](https://pkg.go.dev/badge/github.com/kakilangit/sutil)](https://pkg.go.dev/github.com/kakilangit/sutil)
+[![Build Status](https://travis-ci.org/kakilangit/sutil.svg?branch=main)](https://travis-ci.org/kakilangit/sutil)
+[![codecov.io](http://codecov.io/github/kakilangit/sutil/coverage.svg?branch=main)](http://codecov.io/github/kakilangit/sutil?branch=main)
 
 ![sutil image https://pixabay.com/users/ayecabi-9935472/](sutil.png)
 
