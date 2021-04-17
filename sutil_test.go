@@ -3,6 +3,7 @@ package sutil_test
 import (
 	"math"
 	"reflect"
+	"sort"
 	"testing"
 
 	"github.com/kakilangit/sutil"
@@ -414,9 +415,12 @@ func TestStructSlice_StringSliceUnique(t *testing.T) {
 				ts{
 					String: "1",
 				},
+				ts{
+					String: "2",
+				},
 			},
 			fieldName: "String",
-			expected:  []string{"1"},
+			expected:  []string{"1", "2"},
 		},
 		{
 			name: "ok_pointer",
@@ -427,15 +431,28 @@ func TestStructSlice_StringSliceUnique(t *testing.T) {
 				&ts{
 					String: "2",
 				},
+				&ts{
+					String: "5",
+				},
 			},
 			fieldName: "String",
-			expected:  []string{"2"},
+			expected:  []string{"2", "5"},
 		},
+	}
+
+	less := func(list []string) func(i, j int) bool {
+		return func(i, j int) bool {
+			return list[i] < list[j]
+		}
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			resp, err := test.input.StringSliceUnique(test.fieldName)
+
+			sort.Slice(resp, less(resp))
+			sort.Slice(test.expected, less(test.expected))
+
 			if !reflect.DeepEqual(resp, test.expected) {
 				t.Errorf("expected %+v got %+v", test.expected, resp)
 			}
@@ -463,5 +480,38 @@ func BenchmarkIndex(b *testing.B) {
 func BenchmarkTotalPage(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		_ = sutil.TotalPage(2, 3)
+	}
+}
+
+func BenchmarkStructSlice_NoAllocStringMap(b *testing.B) {
+	type ts struct {
+		String string
+	}
+
+	list := sutil.StructSlice{ts{"1"}, ts{"2"}, ts{"3"}, ts{"4"}}
+	for n := 0; n < b.N; n++ {
+		_, _ = list.NoAllocStringMap("String")
+	}
+}
+
+func BenchmarkStructSlice_StringSlice(b *testing.B) {
+	type ts struct {
+		String string
+	}
+
+	list := sutil.StructSlice{ts{"1"}, ts{"2"}, ts{"3"}, ts{"4"}}
+	for n := 0; n < b.N; n++ {
+		_, _ = list.StringSlice("String")
+	}
+}
+
+func BenchmarkStructSlice_StringSliceUnique(b *testing.B) {
+	type ts struct {
+		String string
+	}
+
+	list := sutil.StructSlice{ts{"1"}, ts{"2"}, ts{"3"}, ts{"4"}}
+	for n := 0; n < b.N; n++ {
+		_, _ = list.StringSliceUnique("String")
 	}
 }

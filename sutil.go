@@ -87,13 +87,13 @@ func (s StructSlice) NoAllocStringMap(name string) (map[string]struct{}, error) 
 		return nil, nil
 	}
 
-	if !s.isValid() {
-		return nil, errors.New("invalid type of struct")
-	}
-
 	var res = make(map[string]struct{})
 
 	for i := range s {
+		if !s.isValid(i) {
+			return nil, errors.New("invalid type of struct")
+		}
+
 		val, err := s.getFieldStringValue(i, name)
 		if err != nil {
 			return nil, err
@@ -110,13 +110,13 @@ func (s StructSlice) StringSlice(name string) ([]string, error) {
 		return nil, nil
 	}
 
-	if !s.isValid() {
-		return nil, errors.New("invalid type of struct")
-	}
-
 	var list []string
 
 	for i := range s {
+		if !s.isValid(i) {
+			return nil, errors.New("invalid type of struct")
+		}
+
 		val, err := s.getFieldStringValue(i, name)
 		if err != nil {
 			return nil, err
@@ -133,10 +133,6 @@ func (s StructSlice) StringSliceUnique(name string) ([]string, error) {
 		return nil, nil
 	}
 
-	if !s.isValid() {
-		return nil, errors.New("invalid type of struct")
-	}
-
 	unique, err := s.NoAllocStringMap(name)
 	if err != nil {
 		return nil, err
@@ -148,15 +144,15 @@ func (s StructSlice) StringSliceUnique(name string) ([]string, error) {
 	)
 
 	for k := range unique {
-		list[0] = k
+		list[i] = k
 		i++
 	}
 
 	return list, nil
 }
 
-func (s StructSlice) isValid() bool {
-	obj := s[0]
+func (s StructSlice) isValid(i int) bool {
+	obj := s[i]
 	types := []reflect.Kind{reflect.Struct, reflect.Ptr}
 	for _, t := range types {
 		if reflect.TypeOf(obj).Kind() == t {
