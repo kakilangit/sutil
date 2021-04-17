@@ -412,30 +412,24 @@ func TestStructSlice_StringSliceUnique(t *testing.T) {
 					String: "1",
 				},
 				ts{
-					String: "2",
-				},
-				ts{
-					String: "2",
+					String: "1",
 				},
 			},
 			fieldName: "String",
-			expected:  []string{"1", "2"},
+			expected:  []string{"1"},
 		},
 		{
 			name: "ok_pointer",
 			input: []interface{}{
 				&ts{
-					String: "1",
+					String: "2",
 				},
 				&ts{
 					String: "2",
 				},
-				&ts{
-					String: "1",
-				},
 			},
 			fieldName: "String",
-			expected:  []string{"1", "2"},
+			expected:  []string{"2"},
 		},
 	}
 
