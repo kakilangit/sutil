@@ -156,10 +156,6 @@ func (s StructSlice) StringSliceUnique(name string) ([]string, error) {
 }
 
 func (s StructSlice) isValid() bool {
-	if s.isEmpty() {
-		return true
-	}
-
 	obj := s[0]
 	types := []reflect.Kind{reflect.Struct, reflect.Ptr}
 	for _, t := range types {
