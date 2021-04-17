@@ -465,3 +465,36 @@ func BenchmarkTotalPage(b *testing.B) {
 		_ = sutil.TotalPage(2, 3)
 	}
 }
+
+func BenchmarkStructSlice_NoAllocStringMap(b *testing.B) {
+	type ts struct {
+		String string
+	}
+
+	list := sutil.StructSlice{ts{"1"}, ts{"2"}, ts{"3"}, ts{"4"}}
+	for n := 0; n < b.N; n++ {
+		_, _ = list.NoAllocStringMap("String")
+	}
+}
+
+func BenchmarkStructSlice_StringSlice(b *testing.B) {
+	type ts struct {
+		String string
+	}
+
+	list := sutil.StructSlice{ts{"1"}, ts{"2"}, ts{"3"}, ts{"4"}}
+	for n := 0; n < b.N; n++ {
+		_, _ = list.StringSlice("String")
+	}
+}
+
+func BenchmarkStructSlice_StringSliceUnique(b *testing.B) {
+	type ts struct {
+		String string
+	}
+
+	list := sutil.StructSlice{ts{"1"}, ts{"2"}, ts{"3"}, ts{"4"}}
+	for n := 0; n < b.N; n++ {
+		_, _ = list.StringSliceUnique("String")
+	}
+}
