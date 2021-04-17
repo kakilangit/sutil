@@ -144,7 +144,7 @@ func (s StructSlice) StringSliceUnique(name string) ([]string, error) {
 	)
 
 	for k := range unique {
-		list[0] = k
+		list[i] = k
 		i++
 	}
 

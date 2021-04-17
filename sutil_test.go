@@ -414,9 +414,12 @@ func TestStructSlice_StringSliceUnique(t *testing.T) {
 				ts{
 					String: "1",
 				},
+				ts{
+					String: "2",
+				},
 			},
 			fieldName: "String",
-			expected:  []string{"1"},
+			expected:  []string{"1", "2"},
 		},
 		{
 			name: "ok_pointer",
@@ -427,9 +430,12 @@ func TestStructSlice_StringSliceUnique(t *testing.T) {
 				&ts{
 					String: "2",
 				},
+				&ts{
+					String: "5",
+				},
 			},
 			fieldName: "String",
-			expected:  []string{"2"},
+			expected:  []string{"2", "5"},
 		},
 	}
 
