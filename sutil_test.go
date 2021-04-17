@@ -2,6 +2,7 @@ package sutil_test
 
 import (
 	"math"
+	"reflect"
 	"testing"
 
 	"github.com/kakilangit/sutil"
@@ -186,6 +187,265 @@ func TestTotalPage(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestStructSlice_NoAllocStringMap(t *testing.T) {
+	t.Parallel()
+
+	type ts struct {
+		String  string
+		Integer int
+	}
+
+	tests := []struct {
+		name      string
+		input     sutil.StructSlice
+		fieldName string
+		expected  map[string]struct{}
+		isError   bool
+	}{
+		{
+			name: "empty_list",
+		},
+		{
+			name:    "invalid_slice",
+			input:   []interface{}{"a"},
+			isError: true,
+		},
+		{
+			name: "invalid_field_name",
+			input: []interface{}{
+				ts{
+					String: "1",
+				},
+			},
+			fieldName: "Z",
+			isError:   true,
+		},
+		{
+			name: "invalid_field_type",
+			input: []interface{}{
+				ts{
+					String: "1",
+				},
+			},
+			fieldName: "Integer",
+			isError:   true,
+		},
+		{
+			name: "ok",
+			input: []interface{}{
+				ts{
+					String: "1",
+				},
+				ts{
+					String: "2",
+				},
+				ts{
+					String: "3",
+				},
+			},
+			fieldName: "String",
+			expected:  map[string]struct{}{"1": {}, "2": {}, "3": {}},
+		},
+		{
+			name: "ok_pointer",
+			input: []interface{}{
+				&ts{
+					String: "1",
+				},
+				&ts{
+					String: "2",
+				},
+				&ts{
+					String: "3",
+				},
+			},
+			fieldName: "String",
+			expected:  map[string]struct{}{"1": {}, "2": {}, "3": {}},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			resp, err := test.input.NoAllocStringMap(test.fieldName)
+			if !reflect.DeepEqual(resp, test.expected) {
+				t.Errorf("expected %+v got %+v", test.expected, resp)
+			}
+
+			if test.isError != (err != nil) {
+				t.Errorf("error should happened: %+v got %+v", test.isError, err)
+			}
+		})
+	}
+
+}
+
+func TestStructSlice_StringSlice(t *testing.T) {
+	t.Parallel()
+
+	type ts struct {
+		String  string
+		Integer int
+	}
+
+	tests := []struct {
+		name      string
+		input     sutil.StructSlice
+		fieldName string
+		expected  []string
+		isError   bool
+	}{
+		{
+			name: "empty_list",
+		},
+		{
+			name:    "invalid_slice",
+			input:   []interface{}{"a"},
+			isError: true,
+		},
+		{
+			name: "invalid_field_name",
+			input: []interface{}{
+				ts{
+					String: "1",
+				},
+			},
+			fieldName: "Z",
+			isError:   true,
+		},
+		{
+			name: "invalid_field_type",
+			input: []interface{}{
+				ts{
+					String: "1",
+				},
+			},
+			fieldName: "Integer",
+			isError:   true,
+		},
+		{
+			name: "ok",
+			input: []interface{}{
+				ts{
+					String: "1",
+				},
+				ts{
+					String: "2",
+				},
+				ts{
+					String: "3",
+				},
+			},
+			fieldName: "String",
+			expected:  []string{"1", "2", "3"},
+		},
+		{
+			name: "ok_pointer",
+			input: []interface{}{
+				&ts{
+					String: "1",
+				},
+				&ts{
+					String: "2",
+				},
+				&ts{
+					String: "3",
+				},
+			},
+			fieldName: "String",
+			expected:  []string{"1", "2", "3"},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			resp, err := test.input.StringSlice(test.fieldName)
+			if !reflect.DeepEqual(resp, test.expected) {
+				t.Errorf("expected %+v got %+v", test.expected, resp)
+			}
+
+			if test.isError != (err != nil) {
+				t.Errorf("error should happened: %+v got %+v", test.isError, err)
+			}
+		})
+	}
+}
+
+func TestStructSlice_StringSliceUnique(t *testing.T) {
+	t.Parallel()
+
+	type ts struct {
+		String  string
+		Integer int
+	}
+
+	tests := []struct {
+		name      string
+		input     sutil.StructSlice
+		fieldName string
+		expected  []string
+		isError   bool
+	}{
+		{
+			name: "empty_list",
+		},
+		{
+			name:    "invalid_slice",
+			input:   []interface{}{"a"},
+			isError: true,
+		},
+		{
+			name: "invalid_field_name",
+			input: []interface{}{
+				ts{
+					String: "1",
+				},
+			},
+			fieldName: "Z",
+			isError:   true,
+		},
+		{
+			name: "ok",
+			input: []interface{}{
+				ts{
+					String: "1",
+				},
+				ts{
+					String: "1",
+				},
+			},
+			fieldName: "String",
+			expected:  []string{"1"},
+		},
+		{
+			name: "ok_pointer",
+			input: []interface{}{
+				&ts{
+					String: "2",
+				},
+				&ts{
+					String: "2",
+				},
+			},
+			fieldName: "String",
+			expected:  []string{"2"},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			resp, err := test.input.StringSliceUnique(test.fieldName)
+			if !reflect.DeepEqual(resp, test.expected) {
+				t.Errorf("expected %+v got %+v", test.expected, resp)
+			}
+
+			if test.isError != (err != nil) {
+				t.Errorf("error should happened: %+v got %+v", test.isError, err)
+			}
+		})
+	}
+
 }
 
 func BenchmarkStringsSplit(b *testing.B) {
