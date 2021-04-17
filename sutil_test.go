@@ -3,6 +3,7 @@ package sutil_test
 import (
 	"math"
 	"reflect"
+	"sort"
 	"testing"
 
 	"github.com/kakilangit/sutil"
@@ -439,9 +440,19 @@ func TestStructSlice_StringSliceUnique(t *testing.T) {
 		},
 	}
 
+	less := func(list []string) func(i, j int) bool {
+		return func(i, j int) bool {
+			return list[i] < list[j]
+		}
+	}
+
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			resp, err := test.input.StringSliceUnique(test.fieldName)
+
+			sort.Slice(resp, less(resp))
+			sort.Slice(test.expected, less(test.expected))
+
 			if !reflect.DeepEqual(resp, test.expected) {
 				t.Errorf("expected %+v got %+v", test.expected, resp)
 			}
