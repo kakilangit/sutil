@@ -7,9 +7,12 @@
 
 Sutil is slice util: a slice snippet collection for Go. 
 
+Requires go >= 1.18.  
+
+```shell
+go get -u -v github.com/kakilangit/sutil
+```
+
 It's spatula in Indonesian/Javanese language.
 
 Check the [tests](sutil_test.go) to see how to use generic slices with sutil. 
-
-
-
