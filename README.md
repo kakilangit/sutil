@@ -5,7 +5,7 @@
 
 ![sutil image https://pixabay.com/users/ayecabi-9935472/](sutil.png)
 
-Sutil is slice util: a slice snipplet collection for Go. 
+Sutil is slice util: a slice snippet collection for Go. 
 
 
 
