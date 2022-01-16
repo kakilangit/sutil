@@ -21,13 +21,12 @@ import "math"
 //
 // 	[[7892141641500 7892141600279] [7892141600422 7892141640145] [7892141650236 7892141650274] [7892141650311]]
 func Split[T any](ss []T, limit int) ([][]T, error) {
-	if limit < 1 || limit > math.MaxInt32 {
-		return nil, ErrInvalidLimit
+	if ss == nil {
+		return nil, ErrInvalidSlice
 	}
 
-	length := len(ss)
-	if ss == nil && length == 0 {
-		return nil, ErrInvalidStringSlice
+	if limit < 1 || limit > math.MaxInt32 {
+		return nil, ErrInvalidLimit
 	}
 
 	total := TotalPage(ss, limit)
