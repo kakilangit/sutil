@@ -2,82 +2,72 @@ package sutil_test
 
 import (
 	"math"
-	"reflect"
 	"sort"
 	"testing"
 
 	"github.com/kakilangit/sutil"
 )
 
-func TestStringsSplit(t *testing.T) {
+func TestSplit(t *testing.T) {
 	t.Parallel()
-	tests := []struct {
-		name           string
+
+	for name, test := range map[string]struct {
 		input          []string
 		limit          int
 		expectedLength int
 		expectedTotal  int
 		err            error
 	}{
-		{
-			name:  "zero_limit",
+		"given limit is zero then returns error": {
 			input: []string{""},
 			err:   sutil.ErrInvalidLimit,
 		},
-		{
-			name:  "negative_limit",
+		"given limit negative then returns error": {
 			input: []string{""},
 			limit: -1,
 			err:   sutil.ErrInvalidLimit,
 		},
-		{
-			name:  "max_limit",
+		"given limit is more than maximum integer then returns error": {
 			input: []string{""},
 			limit: math.MaxInt32 + 1,
 			err:   sutil.ErrInvalidLimit,
 		},
-		{
-			name:  "nil_slice",
+		"given nil_slice then returns error": {
 			input: nil,
 			limit: 1,
 			err:   sutil.ErrInvalidStringSlice,
 		},
-		{
-			name:           "ok_1",
+		"given slice of 3 strings with limit 1 then expect length 3 and total 3": {
 			input:          []string{"A", "B", "C"},
 			limit:          1,
 			expectedLength: 3,
 			expectedTotal:  3,
 		},
-		{
-			name:           "ok_2",
+		"given slice of 3 strings with limit 2 then expect length 2 and total 3": {
 			input:          []string{"A", "B", "C"},
 			limit:          2,
 			expectedLength: 2,
 			expectedTotal:  3,
 		},
-		{
-			name:           "ok_3",
+		"given slice of 9 strings with limit 5 then expect length 2 and total 9": {
 			input:          []string{"A", "B", "C", "D", "E", "F", "G", "H", "I"},
 			limit:          5,
 			expectedLength: 2,
 			expectedTotal:  9,
 		},
-		{
-			name:           "ok_4",
+		"given slice of 10 strings with limit 3 then expect length 4 and total 10": {
 			input:          []string{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"},
 			limit:          3,
 			expectedLength: 4,
 			expectedTotal:  10,
 		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			output, err := sutil.SplitStrings(test.input, test.limit)
+	} {
+		t.Run(name, func(t *testing.T) {
+			output, err := sutil.Split(test.input, test.limit)
 			if test.err != err {
 				t.Error("error must be equal")
 			}
+
 			if test.expectedLength != len(output) {
 				t.Error("slice length must be equal")
 			}
@@ -94,95 +84,37 @@ func TestStringsSplit(t *testing.T) {
 	}
 }
 
-func TestIndex(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name                       string
-		page, limit, total         int
-		expectedStart, expectedEnd int
-	}{
-		{
-			name:          "ok_1",
-			page:          0,
-			limit:         1,
-			total:         2,
-			expectedStart: 0,
-			expectedEnd:   1,
-		},
-		{
-			name:          "ok_2",
-			page:          0,
-			limit:         10,
-			total:         8,
-			expectedStart: 0,
-			expectedEnd:   8,
-		},
-		{
-			name:          "ok_3",
-			page:          1,
-			limit:         3,
-			total:         8,
-			expectedStart: 3,
-			expectedEnd:   6,
-		},
-		{
-			name:          "ok_4",
-			page:          10,
-			limit:         1,
-			total:         8,
-			expectedStart: 8,
-			expectedEnd:   8,
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			start, end := sutil.Index(test.page, test.limit, test.total)
-			if test.expectedStart != start || test.expectedEnd != end {
-				t.Error("start & end index must be equal with the expected values")
-			}
-		})
-	}
-}
-
 func TestTotalPage(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct {
-		name          string
-		limit, total  int
+	for name, test := range map[string]struct {
+		limit         int
+		slices        []int
 		expectedTotal int
 	}{
-		{
-			name:          "ok_1",
+		"given slice of 2 integers and limit 1 expect total of 2": {
 			limit:         1,
-			total:         2,
+			slices:        make([]int, 2),
 			expectedTotal: 2,
 		},
-		{
-			name:          "ok_2",
+		"given slice of 8 integers and limit 10 expect total of 1": {
 			limit:         10,
-			total:         8,
+			slices:        make([]int, 8),
 			expectedTotal: 1,
 		},
-		{
-			name:          "ok_3",
+		"given slice of 8 integers and limit 3 expect total of 3": {
 			limit:         3,
-			total:         8,
+			slices:        make([]int, 8),
 			expectedTotal: 3,
 		},
-		{
-			name:          "ok_4",
+		"given slice of 8 integers and limit 1 expect total of 8": {
 			limit:         1,
-			total:         8,
+			slices:        make([]int, 8),
 			expectedTotal: 8,
 		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			total := sutil.TotalPage(test.limit, test.total)
+	} {
+		t.Run(name, func(t *testing.T) {
+			total := sutil.TotalPage(test.slices, test.limit)
 			if test.expectedTotal != total {
 				t.Error("total must be equal with the expected values")
 			}
@@ -190,328 +122,42 @@ func TestTotalPage(t *testing.T) {
 	}
 }
 
-func TestStructSlice_NoAllocStringMap(t *testing.T) {
+func TestUnique(t *testing.T) {
 	t.Parallel()
 
-	type ts struct {
-		String  string
-		Integer int
-	}
-
-	tests := []struct {
-		name      string
-		input     sutil.StructSlice
-		fieldName string
-		expected  map[string]struct{}
-		isError   bool
+	for name, test := range map[string]struct {
+		slices   []int
+		expected []int
 	}{
-		{
-			name: "empty_list",
+		"given slice of 2 same integers expect total of 1": {
+			slices:   []int{1, 1},
+			expected: []int{1},
 		},
-		{
-			name:    "invalid_slice",
-			input:   []interface{}{"a"},
-			isError: true,
+		"given slice of 2 different integers expect total of 2": {
+			slices:   []int{1, 2},
+			expected: []int{1, 2},
 		},
-		{
-			name: "invalid_field_name",
-			input: []interface{}{
-				ts{
-					String: "1",
-				},
-			},
-			fieldName: "Z",
-			isError:   true,
+		"given slice of 5 mixed integers expect total of 4": {
+			slices:   []int{1, 2, 2, 3, 10},
+			expected: []int{1, 2, 3, 10},
 		},
-		{
-			name: "invalid_field_type",
-			input: []interface{}{
-				ts{
-					String: "1",
-				},
-			},
-			fieldName: "Integer",
-			isError:   true,
-		},
-		{
-			name: "ok",
-			input: []interface{}{
-				ts{
-					String: "1",
-				},
-				ts{
-					String: "2",
-				},
-				ts{
-					String: "3",
-				},
-			},
-			fieldName: "String",
-			expected:  map[string]struct{}{"1": {}, "2": {}, "3": {}},
-		},
-		{
-			name: "ok_pointer",
-			input: []interface{}{
-				&ts{
-					String: "1",
-				},
-				&ts{
-					String: "2",
-				},
-				&ts{
-					String: "3",
-				},
-			},
-			fieldName: "String",
-			expected:  map[string]struct{}{"1": {}, "2": {}, "3": {}},
-		},
-	}
+	} {
+		t.Run(name, func(t *testing.T) {
+			result := sutil.Unique(test.slices)
 
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			resp, err := test.input.NoAllocStringMap(test.fieldName)
-			if !reflect.DeepEqual(resp, test.expected) {
-				t.Errorf("expected %+v got %+v", test.expected, resp)
-			}
+			sort.Ints(test.expected)
+			sort.Ints(result)
 
-			if test.isError != (err != nil) {
-				t.Errorf("error should happened: %+v got %+v", test.isError, err)
+			if !sutil.Equal(result, test.expected) {
+				t.Errorf("result must be equal with the expected values")
 			}
 		})
 	}
 
 }
 
-func TestStructSlice_StringSlice(t *testing.T) {
-	t.Parallel()
-
-	type ts struct {
-		String  string
-		Integer int
-	}
-
-	tests := []struct {
-		name      string
-		input     sutil.StructSlice
-		fieldName string
-		expected  []string
-		isError   bool
-	}{
-		{
-			name: "empty_list",
-		},
-		{
-			name:    "invalid_slice",
-			input:   []interface{}{"a"},
-			isError: true,
-		},
-		{
-			name: "invalid_field_name",
-			input: []interface{}{
-				ts{
-					String: "1",
-				},
-			},
-			fieldName: "Z",
-			isError:   true,
-		},
-		{
-			name: "invalid_field_type",
-			input: []interface{}{
-				ts{
-					String: "1",
-				},
-			},
-			fieldName: "Integer",
-			isError:   true,
-		},
-		{
-			name: "ok",
-			input: []interface{}{
-				ts{
-					String: "1",
-				},
-				ts{
-					String: "2",
-				},
-				ts{
-					String: "3",
-				},
-			},
-			fieldName: "String",
-			expected:  []string{"1", "2", "3"},
-		},
-		{
-			name: "ok_pointer",
-			input: []interface{}{
-				&ts{
-					String: "1",
-				},
-				&ts{
-					String: "2",
-				},
-				&ts{
-					String: "3",
-				},
-			},
-			fieldName: "String",
-			expected:  []string{"1", "2", "3"},
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			resp, err := test.input.StringSlice(test.fieldName)
-			if !reflect.DeepEqual(resp, test.expected) {
-				t.Errorf("expected %+v got %+v", test.expected, resp)
-			}
-
-			if test.isError != (err != nil) {
-				t.Errorf("error should happened: %+v got %+v", test.isError, err)
-			}
-		})
-	}
-}
-
-func TestStructSlice_StringSliceUnique(t *testing.T) {
-	t.Parallel()
-
-	type ts struct {
-		String  string
-		Integer int
-	}
-
-	tests := []struct {
-		name      string
-		input     sutil.StructSlice
-		fieldName string
-		expected  []string
-		isError   bool
-	}{
-		{
-			name: "empty_list",
-		},
-		{
-			name:    "invalid_slice",
-			input:   []interface{}{"a"},
-			isError: true,
-		},
-		{
-			name: "invalid_field_name",
-			input: []interface{}{
-				ts{
-					String: "1",
-				},
-			},
-			fieldName: "Z",
-			isError:   true,
-		},
-		{
-			name: "ok",
-			input: []interface{}{
-				ts{
-					String: "1",
-				},
-				ts{
-					String: "1",
-				},
-				ts{
-					String: "2",
-				},
-			},
-			fieldName: "String",
-			expected:  []string{"1", "2"},
-		},
-		{
-			name: "ok_pointer",
-			input: []interface{}{
-				&ts{
-					String: "2",
-				},
-				&ts{
-					String: "2",
-				},
-				&ts{
-					String: "5",
-				},
-			},
-			fieldName: "String",
-			expected:  []string{"2", "5"},
-		},
-	}
-
-	less := func(list []string) func(i, j int) bool {
-		return func(i, j int) bool {
-			return list[i] < list[j]
-		}
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			resp, err := test.input.StringSliceUnique(test.fieldName)
-
-			sort.Slice(resp, less(resp))
-			sort.Slice(test.expected, less(test.expected))
-
-			if !reflect.DeepEqual(resp, test.expected) {
-				t.Errorf("expected %+v got %+v", test.expected, resp)
-			}
-
-			if test.isError != (err != nil) {
-				t.Errorf("error should happened: %+v got %+v", test.isError, err)
-			}
-		})
-	}
-
-}
-
-func BenchmarkStringsSplit(b *testing.B) {
+func BenchmarkSplit(b *testing.B) {
 	for n := 0; n < b.N; n++ {
-		_, _ = sutil.SplitStrings([]string{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"}, 3)
-	}
-}
-
-func BenchmarkIndex(b *testing.B) {
-	for n := 0; n < b.N; n++ {
-		_, _ = sutil.Index(1, 2, 3)
-	}
-}
-
-func BenchmarkTotalPage(b *testing.B) {
-	for n := 0; n < b.N; n++ {
-		_ = sutil.TotalPage(2, 3)
-	}
-}
-
-func BenchmarkStructSlice_NoAllocStringMap(b *testing.B) {
-	type ts struct {
-		String string
-	}
-
-	list := sutil.StructSlice{ts{"1"}, ts{"2"}, ts{"3"}, ts{"4"}}
-	for n := 0; n < b.N; n++ {
-		_, _ = list.NoAllocStringMap("String")
-	}
-}
-
-func BenchmarkStructSlice_StringSlice(b *testing.B) {
-	type ts struct {
-		String string
-	}
-
-	list := sutil.StructSlice{ts{"1"}, ts{"2"}, ts{"3"}, ts{"4"}}
-	for n := 0; n < b.N; n++ {
-		_, _ = list.StringSlice("String")
-	}
-}
-
-func BenchmarkStructSlice_StringSliceUnique(b *testing.B) {
-	type ts struct {
-		String string
-	}
-
-	list := sutil.StructSlice{ts{"1"}, ts{"2"}, ts{"3"}, ts{"4"}}
-	for n := 0; n < b.N; n++ {
-		_, _ = list.StringSliceUnique("String")
+		_, _ = sutil.Split([]string{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"}, 3)
 	}
 }

@@ -1,23 +1,17 @@
 package sutil
 
-import (
-	"errors"
-	"fmt"
-	"math"
-	"reflect"
-)
+import "math"
 
-// SplitStrings splits slice of string into slice of string slice with maximum member of string slice is limit.
+// Split splits []T into []T with maximum member of[]T is limit.
+//
 // Can be used for pagination or break the parameters used in SQL IN statements.
 // Manipulating slice is faster than append via iteration.
-//
-// Waiting for Go 2 generic and all Split{Type}s will be renamed to Split that accept []T
 //
 // Example:
 //	input := []string{"7892141641500", "7892141600279", "7892141600422", "7892141640145", "7892141650236", "7892141650274", "7892141650311"}
 //	limit := 2
 //
-//	pages, err := sutil.SplitStrings(input, limit)
+//	pages, err := sutil.Split(input, limit)
 //	if err != nil {
 //		fmt.Println(err)
 //	}
@@ -26,47 +20,29 @@ import (
 // Will return:
 //
 // 	[[7892141641500 7892141600279] [7892141600422 7892141640145] [7892141650236 7892141650274] [7892141650311]]
-func SplitStrings(s []string, limit int) ([][]string, error) {
+func Split[T any](ss []T, limit int) ([][]T, error) {
 	if limit < 1 || limit > math.MaxInt32 {
 		return nil, ErrInvalidLimit
 	}
 
-	length := len(s)
-	if s == nil && length == 0 {
+	length := len(ss)
+	if ss == nil && length == 0 {
 		return nil, ErrInvalidStringSlice
 	}
 
-	total := TotalPage(limit, length)
-	slices := make([][]string, total)
+	total := TotalPage(ss, limit)
+	slices := make([][]T, total)
 	for page := 0; page < total; page++ {
-		start, end := Index(page, limit, length)
-		slices[page] = s[start:end]
+		slices[page] = Content(ss, page, limit)
 	}
 
 	return slices, nil
 }
 
-// Index is taking page, limit, and slice length and return the correct start and end index of slice
-func Index(page, limit, length int) (int, int) {
-	start := page * limit
-	if start > length {
-		start = length
-	}
-
-	end := start + limit
-	if end > length {
-		end = length
-	}
-
-	return start, end
-}
-
-// TotalPage is taking limit and slice length and return the total page for any given slice,
-// instead of count the slice it required calculated length, making it more reusable for any type of slices.
-//
-// Waiting Go 2 generic to change the signature to accept []T and perform length calculation.
-func TotalPage(limit, length int) int {
+// TotalPage returns the total page for any given slice based on the limit provided.
+func TotalPage[T any](ss []T, limit int) int {
 	var (
+		length = len(ss)
 		page   = length / limit
 		remain = length % limit
 	)
@@ -78,119 +54,82 @@ func TotalPage(limit, length int) int {
 	return page
 }
 
-type StructSlice []interface{}
-
-// NoAllocStringMap will generate map[string]struct{} of string based on struct field name
-// This kind of hashmap is useful for uniqueness
-func (s StructSlice) NoAllocStringMap(name string) (map[string]struct{}, error) {
-	if s.isEmpty() {
-		return nil, nil
+// Content returns the content of the []T based on page and limit.
+func Content[T any](ss []T, page, limit int) []T {
+	length := len(ss)
+	start := page * limit
+	if start > length {
+		start = length
 	}
 
-	var res = make(map[string]struct{})
-
-	for i := range s {
-		if !s.isValid(i) {
-			return nil, errors.New("invalid type of struct")
-		}
-
-		val, err := s.getFieldStringValue(i, name)
-		if err != nil {
-			return nil, err
-		}
-		res[val] = struct{}{}
+	end := start + limit
+	if end > length {
+		end = length
 	}
 
-	return res, nil
+	return ss[start:end]
 }
 
-// StringSlice will generate slice of string based on struct field name
-func (s StructSlice) StringSlice(name string) ([]string, error) {
-	if s.isEmpty() {
-		return nil, nil
+// Map turns a []T to a []U using a mapping function.
+func Map[T, U any](ss []T, fn func(int, T) U) []U {
+	out := make([]U, len(ss))
+	for i, v := range ss {
+		out[i] = fn(i, v)
 	}
 
-	var list []string
-
-	for i := range s {
-		if !s.isValid(i) {
-			return nil, errors.New("invalid type of struct")
-		}
-
-		val, err := s.getFieldStringValue(i, name)
-		if err != nil {
-			return nil, err
-		}
-		list = append(list, val)
-	}
-
-	return list, nil
+	return out
 }
 
-// StringSliceUnique will generate unique slice of string based on struct field name
-func (s StructSlice) StringSliceUnique(name string) ([]string, error) {
-	if s.isEmpty() {
-		return nil, nil
+// Reduce reduces a []T to a single value using a reduction function.
+func Reduce[T, U any](ss []T, initializer U, f func(U, T) U) U {
+	out := initializer
+	for _, v := range ss {
+		out = f(out, v)
 	}
 
-	unique, err := s.NoAllocStringMap(name)
-	if err != nil {
-		return nil, err
-	}
-
-	var (
-		list = make([]string, len(unique))
-		i    = 0
-	)
-
-	for k := range unique {
-		list[i] = k
-		i++
-	}
-
-	return list, nil
+	return out
 }
 
-func (s StructSlice) isValid(i int) bool {
-	obj := s[i]
-	types := []reflect.Kind{reflect.Struct, reflect.Ptr}
-	for _, t := range types {
-		if reflect.TypeOf(obj).Kind() == t {
-			return true
+// Filter filters values from a slice using a filter function.
+func Filter[T any](ss []T, fn func(int, T) bool) []T {
+	out := make([]T, 0)
+	for i, v := range ss {
+		if !fn(i, v) {
+			continue
+		}
+
+		out = append(out, v)
+	}
+
+	return out
+}
+
+// Unique make []T unique.
+func Unique[T comparable](ss []T) []T {
+	check := make(map[T]struct{})
+	for _, s := range ss {
+		check[s] = struct{}{}
+	}
+
+	res := make([]T, 0, len(check))
+	for s := range check {
+		res = append(res, s)
+	}
+
+	return res
+}
+
+// Equal check slice equality.
+func Equal[T comparable](ss, compared []T) bool {
+	if len(ss) != len(compared) {
+		return false
+	}
+
+	for i, v := range ss {
+		if v != compared[i] {
+			return false
 		}
 	}
 
-	return false
-}
-
-func (s StructSlice) isEmpty() bool {
-	return len(s) == 0
-}
-
-func (s StructSlice) getValue(i int) reflect.Value {
-	var (
-		val reflect.Value
-		obj = s[i]
-	)
-
-	switch reflect.TypeOf(obj).Kind() {
-	case reflect.Ptr:
-		val = reflect.ValueOf(obj).Elem()
-	default:
-		val = reflect.ValueOf(obj)
-	}
-
-	return val
-}
-
-func (s StructSlice) getFieldStringValue(i int, name string) (string, error) {
-	field := s.getValue(i).FieldByName(name)
-	if !field.IsValid() {
-		return "", fmt.Errorf("field %s not exists", name)
-	}
-	val, ok := field.Interface().(string)
-	if !ok {
-		return "", fmt.Errorf("field %s is not string", name)
-	}
-	return val, nil
+	return true
 }
