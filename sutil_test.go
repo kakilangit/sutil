@@ -1,12 +1,17 @@
 package sutil_test
 
 import (
+	"fmt"
 	"math"
 	"sort"
 	"testing"
 
 	"github.com/kakilangit/sutil"
 )
+
+func tFataf(t *testing.T, msg string, expected, got interface{}) {
+	t.Fatalf(`%s expected: %+v, got: %+v`, msg, expected, got)
+}
 
 func TestSplit(t *testing.T) {
 	t.Parallel()
@@ -35,7 +40,11 @@ func TestSplit(t *testing.T) {
 		"given nil_slice then returns error": {
 			input: nil,
 			limit: 1,
-			err:   sutil.ErrInvalidStringSlice,
+			err:   sutil.ErrInvalidSlice,
+		},
+		"given empty slice then expect empty slice": {
+			input: []string{},
+			limit: 1,
 		},
 		"given slice of 3 strings with limit 1 then expect length 3 and total 3": {
 			input:          []string{"A", "B", "C"},
@@ -65,11 +74,11 @@ func TestSplit(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			output, err := sutil.Split(test.input, test.limit)
 			if test.err != err {
-				t.Error("error must be equal")
+				tFataf(t, "error must be equal", test.err, err)
 			}
 
 			if test.expectedLength != len(output) {
-				t.Error("slice length must be equal")
+				tFataf(t, "slice length must be equal", test.expectedLength, len(output))
 			}
 
 			total := 0
@@ -78,7 +87,7 @@ func TestSplit(t *testing.T) {
 			}
 
 			if test.expectedTotal != total {
-				t.Error("total member of the slice must be equal")
+				tFataf(t, "total member of the slice must be equal", test.expectedTotal, total)
 			}
 		})
 	}
@@ -116,7 +125,7 @@ func TestTotalPage(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			total := sutil.TotalPage(test.slices, test.limit)
 			if test.expectedTotal != total {
-				t.Error("total must be equal with the expected values")
+				tFataf(t, "total must be equal with the expected values", test.expectedTotal, total)
 			}
 		})
 	}
@@ -149,11 +158,100 @@ func TestUnique(t *testing.T) {
 			sort.Ints(result)
 
 			if !sutil.Equal(result, test.expected) {
-				t.Errorf("result must be equal with the expected values")
+				tFataf(t, "result must be equal with the expected values", test.expected, result)
 			}
 		})
 	}
+}
 
+func TestMap(t *testing.T) {
+	t.Parallel()
+
+	t.Run("given slice of integers and apply string mapper then expect slice of strings", func(t *testing.T) {
+		given := []int{3, 2, 1}
+		expected := []string{"0-3", "1-2", "2-1"}
+		mapper := func(i, val int) string {
+			return fmt.Sprintf(`%d-%d`, i, val)
+		}
+
+		result := sutil.Map(given, mapper)
+		if !sutil.Equal(result, expected) {
+			tFataf(t, "result must be equal with the expected values", expected, result)
+		}
+	})
+
+	t.Run("given slice of float and apply integer mapper then expect slice of integer", func(t *testing.T) {
+		given := []float64{3.2, 2.9, 1.1}
+		expected := []int{3, 3, 1}
+		mapper := func(_ int, val float64) int {
+			return int(math.Round(val))
+		}
+
+		result := sutil.Map(given, mapper)
+		if !sutil.Equal(result, expected) {
+			tFataf(t, "result must be equal with the expected values", expected, result)
+		}
+	})
+}
+
+func TestReduce(t *testing.T) {
+	t.Parallel()
+
+	t.Run("given slice of integers and apply string reducer then expect string", func(t *testing.T) {
+		given := []int{3, 2, 1}
+		expected := "321"
+		reducer := func(current string, val int) string {
+			return fmt.Sprintf(`%s%d`, current, val)
+		}
+
+		result := sutil.Reduce(given, "", reducer)
+		if result != expected {
+			tFataf(t, "result must be equal with the expected values", expected, result)
+		}
+	})
+
+	t.Run("given slice of float and apply integer reducer then expect integer", func(t *testing.T) {
+		given := []float64{3.2, 2.9, 1.1}
+		expected := 7
+		reducer := func(current int, val float64) int {
+			return current + int(math.Round(val))
+		}
+
+		result := sutil.Reduce(given, 0, reducer)
+		if result != expected {
+			tFataf(t, "result must be equal with the expected values", expected, result)
+		}
+	})
+}
+
+func TestFilter(t *testing.T) {
+	t.Parallel()
+
+	t.Run("given slice of integers and apply filter then expect filtered slice of integers", func(t *testing.T) {
+		given := []int{3, 2, 1}
+		expected := []int{2}
+		filter := func(_, val int) bool {
+			return val%2 == 0
+		}
+
+		result := sutil.Filter(given, filter)
+		if !sutil.Equal(result, expected) {
+			tFataf(t, "result must be equal with the expected values", expected, result)
+		}
+	})
+
+	t.Run("given slice of strings and apply filter then expect filtered slice of strings", func(t *testing.T) {
+		given := []string{"a", "b", "c"}
+		expected := []string{"b", "c"}
+		filter := func(_ int, val string) bool {
+			return val != "a"
+		}
+
+		result := sutil.Filter(given, filter)
+		if !sutil.Equal(result, expected) {
+			tFataf(t, "result must be equal with the expected values", expected, result)
+		}
+	})
 }
 
 func BenchmarkSplit(b *testing.B) {

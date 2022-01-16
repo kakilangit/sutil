@@ -9,8 +9,8 @@ func (e Error) Error() string {
 }
 
 const (
-	// ErrInvalidStringSlice is invalid string slice
-	ErrInvalidStringSlice = Error("invalid string slice")
+	// ErrInvalidSlice is invalid string slice
+	ErrInvalidSlice = Error("invalid slice")
 	// ErrInvalidLimit is invalid limit
 	ErrInvalidLimit = Error("invalid limit value")
 )
